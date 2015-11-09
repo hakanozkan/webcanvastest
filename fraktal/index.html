@@ -1,0 +1,351 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Mandelbrot fraktalı</title>
+       
+     
+      
+<script type="text/javascript">
+
+		
+        	
+   MyGradient=new function()
+   {
+   	this.liste=new Array
+   	this.add=function(deger,color){
+   		obj=new Object
+   		obj.deger=deger
+   		obj.r=hexToR(color)
+   		obj.g=hexToG(color)
+   		obj.b=hexToB(color)
+   		this.liste.push(obj)
+   		this.liste.sort(function(a,b){return a.deger-b.deger})
+   	}
+   	this.getgradcolor=function(x){
+   		liste=this.liste
+   		
+   		for(var i=0;i<liste.length-1;++i)
+   		{
+   			if ((x>=liste[i].deger)&&(x<liste[i+1].deger))
+   			{
+   				r1=liste[i].r
+   				r2=liste[i+1].r
+   				if (r1>r2)
+   				{
+   					t=r1
+   					r1=r2
+   					r2=t
+   				}
+   				
+   				g1=liste[i].g
+   				g2=liste[i+1].g
+   				
+   				if (g1>g2)
+   				{
+   					t=g1
+   					g1=g2
+   					g2=t
+   				}
+   				
+   				b1=liste[i].b
+   				b2=liste[i+1].b
+   				if (b1>b2)
+   				{
+   					t=b1
+   					b1=b2
+   					b2=t
+   				}
+   				
+   				
+   				
+   				
+   				deger1=liste[i].deger
+   				deger2=liste[i+1].deger
+   				px=(x-deger1)/(deger2-deger1)
+   				//px=(deger2-x)/(deger2-deger1)
+   				
+   				r=lerp(px,r1,r2)
+   				g=lerp(px,g1,g2)
+   				b=lerp(px,b1,b2)
+   				
+   				
+   				
+   				
+   				r=Math.round(r)
+   				g=Math.round(g)
+   				b=Math.round(b)
+   				sonuc=new Array
+   				sonuc.push(r)
+   				sonuc.push(g)
+   				sonuc.push(b)
+   				//return "rgb("+r+","+g+","+b+")";
+   				return sonuc
+   			}
+   		}
+   		sonuc=new Array
+   		sonuc.push(0)
+   		sonuc.push(0)
+   		sonuc.push(0)
+   				
+   		//return "rgb(255,0,0)"
+   		return sonuc
+   		
+   	}
+   	
+   	this.getcolor=function(x){
+   		liste=this.liste
+   		
+   		for(var i=0;i<liste.length;++i)
+   		{
+   			if ((x>=liste[i].deger)&&(x<liste[i+1].deger))
+   			{
+   			
+   				r=liste[i].r
+   				g=liste[i].g
+   				b=liste[i].b	
+   				return "rgb("+r+","+g+","+b+")";
+   			}
+   		}
+   		
+   		return "rgb(255,0,0)"
+   		
+   	}
+function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
+function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
+function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
+function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}
+   	function lerp( t, a, b) { return a + t * (b - a); }
+   	
+   }
+       	
+        	
+        	function setPixel(imageData, x, y, r, g, b, a) 
+        	{
+    			index = (x + y * imageData.width) * 4;
+    			imageData.data[index+0] = r;
+    			imageData.data[index+1] = g;
+    			imageData.data[index+2] = b;
+    			imageData.data[index+3] = a;
+			}
+			function formul_uygula(r,i)
+			{
+				sonuc=new Array
+				sonuc[0]=r*r-r*i*i
+				sonuc[1]=2*i*r
+				return sonuc
+			}
+			function constant(w,h,x,y,zoom,centerx,centery) {
+  
+   				diameter = Math.min(w,h);
+   				increment = (4.0 / zoom) / diameter;
+  				sonuc=new Array
+  				sonuc.push(-((increment * w) / 2) + centerx + (increment * x))
+   				sonuc.push(((increment * h) / 2) + centery - (increment * y))
+   				return sonuc
+  				
+ 			}
+			function ciz()
+			{
+        		ctx = document.getElementById('canvas1').getContext('2d');
+        		for(var px=0;px<width;++px)
+        		for(var py=0;py<height;++py)
+        		{
+        			//x0=-2.5+px/width*3.5*
+        			//y0=-1+py/height*2*
+        			
+        			deger=constant(width,height,px,py,zoom,centerx,centery)
+        			x0=deger[0]
+        			y0=deger[1]
+        			iteration = 0
+  					
+					x = 0
+  					y = 0
+  					while ( (x*x + y*y < 2*2)  && (iteration < max_iteration) )
+  					{
+    					xtemp = x*x - y*y + x0
+    					y = 2*x*y + y0
+    					x = xtemp
+    					iteration = iteration + 1
+  					}
+  					color = iteration/max_iteration
+  					//dizi=gr.getgradcolor(color)
+					//setPixel(imageData,px,py,dizi[0],dizi[1],dizi[2],255)
+					setPixel(imageData,px,py,renkler[iteration][0],renkler[iteration][1],renkler[iteration][2],255);
+  
+				}
+			
+        		ctx.putImageData(imageData, 0, 0);
+        	}
+        	
+        	var ctx
+        	var gr=MyGradient;
+        	var imageData;
+        	var width=800;
+        	var height=600; 
+        	function ilkle()
+        	{
+        		
+        		ctx = document.getElementById('canvas1').getContext('2d');
+        		imageData = ctx.createImageData(width, height);
+        		gr_ilkle()
+        		ciz()
+        		   			
+        	}
+        	function hsv2rgb(h,s,v) {
+// Adapted from http://www.easyrgb.com/math.html
+// hsv values = 0 - 1, rgb values = 0 - 255
+var r, g, b;
+var RGB = new Array();
+if(s==0){
+  RGB['red']=RGB['green']=RGB['blue']=Math.round(v*255);
+}else{
+  // h must be < 1
+  var var_h = h * 6;
+  if (var_h==6) var_h = 0;
+  //Or ... var_i = floor( var_h )
+  var var_i = Math.floor( var_h );
+  var var_1 = v*(1-s);
+  var var_2 = v*(1-s*(var_h-var_i));
+  var var_3 = v*(1-s*(1-(var_h-var_i)));
+  if(var_i==0){ 
+    var_r = v; 
+    var_g = var_3; 
+    var_b = var_1;
+  }else if(var_i==1){ 
+    var_r = var_2;
+    var_g = v;
+    var_b = var_1;
+  }else if(var_i==2){
+    var_r = var_1;
+    var_g = v;
+    var_b = var_3
+  }else if(var_i==3){
+    var_r = var_1;
+    var_g = var_2;
+    var_b = v;
+  }else if (var_i==4){
+    var_r = var_3;
+    var_g = var_1;
+    var_b = v;
+  }else{ 
+    var_r = v;
+    var_g = var_1;
+    var_b = var_2
+  }
+  //rgb results = 0 ÷ 255  
+  RGB['red']=Math.round(var_r * 255);
+  RGB['green']=Math.round(var_g * 255);
+  RGB['blue']=Math.round(var_b * 255);
+  }
+return RGB;  
+}
+renkler=new Array;
+var max_iteration = 2000
+        	function gr_ilkle()
+        	{
+        		/*
+        		tekrar=15;
+        		elemansayi=6
+        		
+        		for(var i=0;i<tekrar;++i)
+        		{
+        			
+        			gr.add((i*elemansayi+0)/(elemansayi*tekrar),'#ce6aff')
+        			gr.add((i*elemansayi+1)/(elemansayi*tekrar),'#c961fc')
+					gr.add((i*elemansayi+2)/(elemansayi*tekrar),'#5fffff')
+					gr.add((i*elemansayi+3)/(elemansayi*tekrar),'#66f962')
+					gr.add((i*elemansayi+4)/(elemansayi*tekrar),'#ff6060')
+					gr.add((i*elemansayi+5)/(elemansayi*tekrar),'#ff6970')
+					
+					
+					
+				}
+				*/
+			
+				
+				
+				for(var i=0;i<max_iteration;++i)
+        		{
+        			rgbdeger=hsv2rgb(i/max_iteration,1,1);
+        			donusenrgb=new Array();
+        			donusenrgb.push(rgbdeger['red']);
+        			donusenrgb.push(rgbdeger['green']);
+        			donusenrgb.push(rgbdeger['blue']);
+        			renkler.push(donusenrgb)
+        		}
+        		
+        		son=new Array;
+        		son.push(0);
+        		son.push(0);
+        		son.push(0);
+				renkler.push(son);
+				
+        	}
+        	var zoom=1
+        	var xbegin=0
+        	var ybegin=0
+        	var xend=width
+        	var yend=height
+        	var centerx=0
+        	var centery=0
+        	var mdown=false
+        	
+        	function canvas_down(event)
+        	{
+        		var element = event.target;
+				var elementX = event.clientX - element.offsetLeft+window.scrollX
+				var elementY = event.clientY - element.offsetTop+window.scrollY
+				xbegin=elementX
+				ybegin=elementY
+				mdown=true
+        		//alert(elementX+" "+elementY);
+        	}
+        	function canvas_move(event)
+        	{
+        		if (!mdown) return
+        		
+        		
+        		
+				
+          		
+          		ctx.putImageData(imageData, 0, 0);
+          		
+				var element = event.target;
+				var elementX = event.clientX - element.offsetLeft+window.scrollX
+				var elementY = event.clientY - element.offsetTop+window.scrollY
+				xend=elementX
+				yend=elementY
+				
+				ctx.strokeStyle = "#000000";
+				ctx.lineWidth   = 2;
+				ctx.strokeRect(xbegin, ybegin, xend-xbegin, yend-ybegin);
+          		
+        		//alert(elementX+" "+elementY);
+        	}
+        	function canvas_up(event)
+        	{
+        		start=constant(width,height,xbegin,ybegin,zoom,centerx,centery)
+        		end=constant(width,height,xend,yend,zoom,centerx,centery)
+        		centerx=(start[0]+end[0])/2
+        		centery=(start[1]+end[1])/2
+        		
+        		newZoom = Math.min(width,height) / Math.min(Math.abs(xend - xbegin),Math.abs(yend - ybegin));
+    			if (newZoom <= 1000) zoom *= newZoom;
+    			else zoom *= 10;
+        		mdown=false
+        		ciz()
+        	}
+        </script>
+    </head>
+    <body onload="ilkle();">
+    	<h1>Mandelbrot fraktalı</h1>
+        <b>büyütmek istediğiniz bölgeyi sürükleyerek seçebilirsiniz </b><br>
+        <canvas id="canvas1" width="800" height="600" onmousedown="canvas_down(event)" onmousemove="canvas_move(event)" onmouseup="canvas_up(event)">olmadi</canvas>
+        
+      
+        
+        
+    </body>
+</html>
