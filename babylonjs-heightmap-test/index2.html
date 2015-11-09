@@ -1,0 +1,268 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Babylon.js sample code</title>
+        <!-- Babylon.js -->
+        <script src="hand.minified-1.2.js"></script>
+        <script src="cannon.js"></script>
+        <script src="Oimo.js"></script>
+        <script src="babylon.2.2.max.js"></script>
+		<style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+        </style>
+    
+    </head>
+<body>
+    
+    <canvas id="renderCanvas" ></canvas>
+	<canvas id="texcanvas" width="1081" height="1081"></canvas>
+    <canvas id="imgcanvas" width="1081" height="1081"></canvas>
+	<img id="himg" src="HeightMap.png" />
+    <script type="text/javascript">
+	
+
+
+
+
+var gradiencolors=[];
+	    function hex (c) {
+  var s = "0123456789abcdef";
+  var i = parseInt (c);
+  if (i == 0 || isNaN (c))
+    return "00";
+  i = Math.round (Math.min (Math.max (0, i), 255));
+  return s.charAt ((i - i % 16) / 16) + s.charAt (i % 16);
+}
+
+/* Convert an RGB triplet to a hex string */
+function convertToHex (rgb) {
+  return hex(rgb[0]) + hex(rgb[1]) + hex(rgb[2]);
+}
+
+/* Remove '#' in color hex string */
+function trim (s) { return (s.charAt(0) == '#') ? s.substring(1, 7) : s }
+
+/* Convert a hex string to an RGB triplet */
+function convertToRGB (hex) {
+  var color = [];
+  color[0] = parseInt ((trim(hex)).substring (0, 2), 16);
+  color[1] = parseInt ((trim(hex)).substring (2, 4), 16);
+  color[2] = parseInt ((trim(hex)).substring (4, 6), 16);
+  return color;
+}
+
+function generateColor(colorStart,colorEnd,alpha){
+
+	// The beginning of your gradient
+	var start = convertToRGB (colorStart);    
+
+	// The end of your gradient
+	var end   = convertToRGB (colorEnd);    
+
+	
+	var c = [];
+		
+		
+	c[0] = start[0] * (1-alpha) + (alpha) * end[0];
+	c[1] = start[1] * (1-alpha) + (alpha) * end[1];
+	c[2] = start[2] * (1-alpha) + (alpha) * end[2];
+
+	return	convertToHex (c);
+		
+	
+}
+function getGradColor(liste,nokta){
+
+  var begin=0;
+  var end=0;
+  var pbegin=0;
+  var pend=0;
+  
+  for(var i=0;i<liste.length-1;++i){
+   if ((liste[i][0]<=nokta) && (liste[i+1][0]>=nokta)){
+     pbegin=liste[i][0];
+	 pend=liste[i+1][0];
+  
+     begin=liste[i][1];
+	 end=liste[i+1][1];
+     break;
+   }
+  
+  }
+  
+  if (pbegin==0 && pend==0){
+	if (nokta<liste[0][0])
+		return liste[0][1];
+	else
+		return liste[liste.length-1][1];
+  
+  }
+  return generateColor(begin,end,(nokta-pbegin)/(pend-pbegin));
+}
+
+
+		
+		
+		var canvas = document.getElementById("renderCanvas");
+                var imgcanvas = document.getElementById("imgcanvas");
+		var texcanvas = document.getElementById("texcanvas");
+                var imgctx = imgcanvas.getContext('2d');
+                var texctx = texcanvas.getContext('2d');
+                var img=document.getElementById("himg");
+	        imgctx.drawImage(img,0,0);	
+		var image = imgctx.getImageData(0,0,imgcanvas.width, imgcanvas.height);
+		var teximage = texctx.createImageData(texcanvas.width, texcanvas.height);
+
+     
+
+        var engine = new BABYLON.Engine(canvas, true);
+     
+      
+
+		  
+		
+		
+		
+		
+	
+		
+		
+			
+
+			var gradiencolors=[
+							   [0.325490*0.0,convertToHex([0,   0, 128])],
+                                                           [0.325490*0.08,convertToHex([0,   0, 192])],
+                             				   [0.325490*0.11,convertToHex([0, 0, 255])],
+							   [0.325490*0.153,convertToHex([240, 240,  64])],
+							   [0.325490*0.20,convertToHex([32, 160,   0])],
+							   [0.325490*0.70,convertToHex([224, 224,   0])],
+                                                           [0.325490*0.90,convertToHex([128, 128, 128])],
+							   [0.325490*1,convertToHex([255, 255, 255])]
+	
+
+							   ];
+							   
+							   
+							   
+		
+			
+			var maxvalue=-1;
+			var minvalue=1000;
+			
+			
+			
+			
+			
+				
+			
+		
+			
+			for (var x = 0; x < imgcanvas.width; x++) {
+				for (var y = 0; y < imgcanvas.height; y++) {
+					
+				
+					var cell = (x + y * imgcanvas.width) * 4;
+					var value=((image.data[cell]/255.0));
+					if(image.data[cell]>maxvalue) maxvalue=image.data[cell];
+					if(image.data[cell]<minvalue) minvalue=image.data[cell];
+					
+  
+					var texcolor=convertToRGB(getGradColor(gradiencolors,value));
+					teximage.data[cell]=texcolor[0];
+					teximage.data[cell+1]=texcolor[1];
+					teximage.data[cell+2]=texcolor[2];
+					teximage.data[cell + 3] = 255;
+					
+				
+					
+				}
+			}
+		
+			texctx.fillColor = 'black';
+			texctx.fillRect(0, 0, texcanvas.width, texcanvas.height);
+			texctx.putImageData(teximage, 0, 0);
+           
+			console.log(maxvalue);
+			console.log(minvalue);
+			
+            //var dataURL=imgcanvas.toDataURL();
+			var texdataURL=texcanvas.toDataURL();
+            
+
+
+           
+
+            // This creates a basic Babylon Scene object (non-mesh)
+            var scene = new BABYLON.Scene(engine);
+        
+            // This creates and positions a free camera (non-mesh)
+            var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 300, -1000), scene);
+        
+            // This targets the camera to scene origin
+            camera.setTarget(new BABYLON.Vector3(0,0,-1));
+        
+            // This attaches the camera to the canvas
+            camera.attachControl(canvas, true);
+        
+             // Light
+			var light0 = new BABYLON.DirectionalLight("Dir0", new BABYLON.Vector3(1, -1, 0), scene);
+			light0.diffuse = new BABYLON.Color3(1, 1, 1);
+			light0.specular = new BABYLON.Color3(0, 0, 0);
+
+
+			var groundMaterial = new BABYLON.StandardMaterial("groundmat", scene);
+			groundMaterial.diffuseTexture = new BABYLON.Texture(texdataURL , scene);
+			
+			var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "HeightMap.png" , 1081, 1081, 250, 0, 150, scene, false);
+			ground.material = groundMaterial; 
+			
+			/*var seabox = BABYLON.Mesh.CreateBox("sea",{width:1024,height:300,depth:1024},scene);
+			 var mat = new BABYLON.StandardMaterial("mat1", scene);
+	                 mat.alpha = 0.5;
+	                 mat.diffuseColor = new BABYLON.Color3(0, 0, 1);
+	                 seabox.material = mat;
+			*/
+
+    
+			 // Skybox
+			 /*
+    			var skybox = BABYLON.Mesh.CreateBox("skyBox", 2000.0, scene);
+    			var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+    			skyboxMaterial.backFaceCulling = false;
+    			skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("textures/skybox", scene);
+    			skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    			skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    			skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+    			skyboxMaterial.disableLighting = true;
+    			skybox.material = skyboxMaterial;
+			*/
+			
+        
+        
+		   engine.runRenderLoop(function () {
+					scene.render();
+				});
+                 window.addEventListener("resize", function () {
+					engine.resize();
+				});
+
+		//scene.debugLayer.show();
+     
+
+ 
+    </script>
+</body>
+</html>
